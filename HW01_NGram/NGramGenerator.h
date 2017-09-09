@@ -109,7 +109,7 @@ public:
     */
     void printTopNGrams(size_t topK, std::ostream& os = std::cout);
     
-    void updateMap(WordQueue& q);
+    void processGrams(WordQueue& q);
     
 protected:
     // Add any instance variables or methods as needed.
@@ -120,6 +120,8 @@ private:
     size_t minGramLength, maxGramLength;
     std::string wordHolder = "";
     WordQueue wordq;
+    NGramMap ngmap;
+    std::unordered_map<std::string, int>::iterator get;
 };
 
 #endif /* NGRAM_GENERATOR_H */
