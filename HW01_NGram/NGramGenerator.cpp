@@ -39,7 +39,7 @@ void NGramGenerator::extractFrom(std::istream& is) {
     while ( !is.eof() ) {
         is >> std::noskipws >> c;
         if ( std::isalnum(c) ) {
-            wordHolder += c;
+            wordHolder += std::tolower(c);
         } else if ( wordHolder != "" ) {
             wordq.push_back(wordHolder);
             wordHolder = "";  // Reseting wordHolder

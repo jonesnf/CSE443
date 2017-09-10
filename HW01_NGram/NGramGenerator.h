@@ -94,6 +94,21 @@ public:
         extracted.
     */
     void extractFrom(std::istream& is);
+    
+    /**
+     * Store current n-grams being observed in unordered map
+     * 
+     * This method traverses through the WordQueue (deque) to see if any of the
+     * n-grams are already in the unordered map.  If they are, the iterator 
+     * updates the key's value (value++), else, it adds a new {key, value} pair
+     * in the map.  After the queue is processed, it pops first element to make 
+     * room for a new one.   
+     * 
+     * @param[in] q: Deque that holds words we are observing.  Size of deque
+     * ranges from minimum & max gram length as specified in runtime arguments.
+     * Size is never bigger than maxGramLength
+     */
+    void processGrams(WordQueue& q);
 
     /** Print the most frequently occurring n-grams.
 
@@ -112,11 +127,13 @@ public:
         be printed.
     */
     void printTopNGrams(size_t topK, std::ostream& os = std::cout);
+      
     
-    void processGrams(WordQueue& q);
-    
-    void topKGen(NGramMap& mp);
-    
+    /**
+     * This struct is simply used as a custom compare function for our priority
+     * queue.  This allows us to compare things of a certain type - in our case
+     * a pair that holds a string and int (key, value).
+     */
     struct CustomComp {
         bool operator()(const pair& p1, const pair& p2) const { 
             return p1.second < p2.second;
