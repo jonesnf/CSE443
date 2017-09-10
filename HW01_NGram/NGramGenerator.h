@@ -34,22 +34,30 @@
 #include <iostream>
 #include <unordered_map>
 #include <cctype>
+#include <deque>
 #include <queue>
 #include <stack>
 #include <utility>
 #include <fstream>
 #include <algorithm>
 #include <iterator>
+#include <regex>
+#include <functional>
 
 // A hashmap for counting frequency of n-grams
 using NGramMap = std::unordered_map<std::string, int>;
-using WordQueue = std::queue<std::string>;
+using WordQueue = std::deque<std::string>;
+using pair      = std::pair<std::string, int>;
+using TopKQueue = std::priority_queue<pair,
+                          std::vector<pair>, std::less<pair>>;
     
 /** A relatively straightforward class to extract n-grams from a given
     corpus of text.
     
 */
 class NGramGenerator {
+    friend bool operator<(const pair& p1, const pair& p2);
+    
 public:
     /** The constructor for this class to create a n-gram generator to
         extract n-grams of given length.
@@ -111,6 +119,8 @@ public:
     
     void processGrams(WordQueue& q);
     
+    void topKGen(NGramMap& mp);
+    
 protected:
     // Add any instance variables or methods as needed.
 
@@ -121,6 +131,7 @@ private:
     std::string wordHolder = "";
     WordQueue wordq;
     NGramMap ngmap;
+    TopKQueue topK;
     std::unordered_map<std::string, int>::iterator get;
 };
 

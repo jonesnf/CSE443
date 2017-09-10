@@ -41,8 +41,7 @@ void NGramGenerator::extractFrom(std::istream& is) {
         if ( std::isalnum(c) ) {
             wordHolder += c;
         } else if ( wordHolder != "" ) {
-            wordq.push(wordHolder);
-            std::cout << wordHolder << std::endl;
+            wordq.push_back(wordHolder);
             wordHolder = "";  // Reseting wordHolder
         }
         if ( wordq.size() == maxGramLength ) 
@@ -52,26 +51,30 @@ void NGramGenerator::extractFrom(std::istream& is) {
 }
 
 void NGramGenerator::processGrams(WordQueue& q) {
-    get = ngmap.find(q.front());
-    
-    if ( get == ngmap.end() ) {
-        std::cout << "Couldn't find: " << q.front() << std::endl;
-        ngmap.insert({q.front(), 1});
-    } else {
-        std::cout << "Found: " << get->first << " with value: " 
-                                             << get->second     
-                                             << std::endl;
-        get->second++;
+    size_t i; 
+    for ( i = 0; i < q.size(); i++ )  {
+        wordHolder += q[i] + " ";
+        get = ngmap.find(wordHolder);
+        if ( get == ngmap.end() ) {
+            ngmap.insert({wordHolder, 1});
+        } else {
+            get->second++;
+        }
     }
-    
-    q.pop();
+    wordHolder = "";
+    q.pop_front();
+}
+
+bool operator<(const pair& p1, const pair& p2) {
+    return p1.second < p2.second;
 }
 
 void NGramGenerator::printTopNGrams(size_t topK,
                                     std::ostream& os /*= std::cout*/) {
     std::cout << "print Top N grams\n";
     for ( auto& m : ngmap)
-        std::cout << m.first << ": " << m.second << std::endl;
+        std::cout << std::regex_replace(m.first, std::regex("[ ]+$"), "") 
+                  << ": " << m.second << std::endl; 
 }
 
 
