@@ -76,9 +76,9 @@ void NGramGenerator::printTopNGrams(size_t topK,
     }
     size_t i = 0;
     while ( i < topK && !top_k.empty() ) {
-        std::cout << std::regex_replace(top_k.top().first,
-                     std::regex("[ ]+$"), "") << 
-                     ": " << top_k.top().second << std::endl;
+        std::cout << std::regex_replace(top_k.top().first, 
+                                        std::regex("[ ]+$"), "") 
+                  << ": " << top_k.top().second << std::endl;
         top_k.pop();
         i++;
     }
