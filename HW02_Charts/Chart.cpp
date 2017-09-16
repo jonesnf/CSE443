@@ -33,8 +33,30 @@ std::ostream& operator<<(std::ostream& os, const Chart& c) {
 
 std::istream& operator>>(std::istream& is, Chart& c) {
     std::istream_iterator<Point> file(is);
-    std::copy(file, std::istream_iterator<Point>(),
+    c.pointList.clear();
+    std::copy(file, std::istream_iterator<Point>(), 
             std::back_inserter(c.pointList)); 
     return is;
 }
+
+Chart& Chart::operator=(const Chart& src) {
+    this->pointList = src.pointList;
+    return *this;
+}
+
+bool Chart::contains(const Point& p) const {
+    return ( std::find(pointList.begin(), pointList.end(), p) != 
+            pointList.end()) ? true : false;
+}
+
+Chart Chart::operator+(const Chart& other) const {
+    Chart newC;
+    std::copy(this->pointList.begin(), this->pointList.end(),
+            std::back_inserter(newC.pointList));
+    std::copy_if(other.pointList.begin(), other.pointList.end(), 
+            std::back_inserter(newC.pointList), 
+            [this](const Point& p){return !(this->contains(p));});
+    return newC;
+}
+
 
