@@ -30,7 +30,8 @@ public:
     bool contains(const Point& p) const;
     Chart operator+(const Chart& other) const;
     Chart operator-(const Chart& other) const;
-    Chart operator-(const Point& scale) const;
+    Chart operator*(const Point& scale) const;
+    Chart operator/(const Point& scale) const;
     Chart operator>>(int value) const;
     Chart operator<<(int value) const;
     void analyze(std::ostream& os, const int scale) const;

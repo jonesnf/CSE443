@@ -50,13 +50,49 @@ bool Chart::contains(const Point& p) const {
 }
 
 Chart Chart::operator+(const Chart& other) const {
-    Chart newC;
-    std::copy(this->pointList.begin(), this->pointList.end(),
-            std::back_inserter(newC.pointList));
+    Chart newC = *this;
     std::copy_if(other.pointList.begin(), other.pointList.end(), 
             std::back_inserter(newC.pointList), 
             [this](const Point& p){return !(this->contains(p));});
     return newC;
 }
 
+Chart Chart::operator-(const Chart& other) const {
+    Chart newC;
+    std::copy_if(this->pointList.begin(), this->pointList.end(), 
+            std::back_inserter(newC.pointList), 
+            [&other](const Point& p){return !(other.contains(p));});
+    return newC;
+}
 
+Chart Chart::operator*(const Point& scale) const {
+    Chart newC;
+    std::transform(this->pointList.begin(), this->pointList.end(),
+            std::back_inserter(newC.pointList),
+            [&scale](const Point& p){
+            return Point(p.getX()*scale.getX(), p.getY()*scale.getY());});
+    return newC;
+}
+
+Chart Chart::operator/(const Point& scale) const {
+    Chart newC;
+    std::transform(this->pointList.begin(), this->pointList.end(),
+            std::back_inserter(newC.pointList),
+            [&scale](const Point& p){
+            return Point(p.getX()/scale.getX(), p.getY()/scale.getY());});
+    return newC;
+}
+
+Chart Chart::operator>>(int value) const {
+    Chart newC = *this;
+    for (; value > 0 ; --value) 
+        newC.pointList.insert(newC.pointList.begin(), Point(0, 0));
+    return newC;
+}
+
+Chart Chart::operator<<(int value) const {
+    Chart newC = *this;
+    for (; value > 0 ; --value) 
+        newC.pointList.erase(newC.pointList.begin());
+    return newC;
+}
