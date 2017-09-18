@@ -97,7 +97,6 @@ Chart Chart::operator<<(int value) const {
     return newC;
 }
 
-//  Fix this at some point.  Way too inefficient
 void Chart::analyze(std::ostream& os, const int scale) const {
     Chart temp;
     std::copy_if(this->pointList.begin(), this->pointList.end(),

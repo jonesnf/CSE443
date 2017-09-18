@@ -22,7 +22,6 @@ ChartMaker::run() {
             last3Cmds(getCmd->second, currChart);
         else
             std::cout << "Please enter valid cmd (h for help)" << std::endl;
-        // quit = true;
     }
     
     return 0;
@@ -56,7 +55,7 @@ void ChartMaker::sec3Cmds(int cmd, Chart& c) {
             std::cin >> tempX >> tempY; c = c * Point(tempX, tempY);
             break;
         case 5:
-            std::cout << "Enter value to scale x & y coordinates: ";
+            std::cout << "Enter values to scale x & y coordinates: ";
             std::cin >> tempX >> tempY; c = c / Point(tempX, tempY);
             break;
         case 6:
@@ -79,7 +78,7 @@ void ChartMaker::third3Cmds(int cmd, Chart& c) {
         case 9:
             std::cout << "Enter path to file: ";
             std::cin >> filePath; outFile.open(filePath);
-            outFile << c; outFile.close();
+            outFile << c << std::endl; outFile.close();
             break;            
     }
 }
@@ -87,21 +86,21 @@ void ChartMaker::third3Cmds(int cmd, Chart& c) {
 void ChartMaker::last3Cmds(int cmd, Chart& c) {
     switch (cmd) {
         case 10: 
-            std::cout << c;
+            std::cout << c << std::endl;
             break;
         case 11:
-            std::cout << "All commands are single characters.\n Valid commands"
+            std::cout << "All commands are single characters.\nValid commands"
                       << " are:\n" 
                       << "l: Load data from file as current set of points\n"
-                      << "+: Add data from another file to current points\n"
-               << "-: Subtract data from another file from current points\n"
+                      << "+: Add data from another to to current points\n"
+               << "-: Subtract data from another file from current poitns\n"
                       << "*: Scale current points by given pair of values\n"
                       << "/: Scale current points by given pair of values\n"
                       << "?: Print histogram current point distribution\n"
-                      << "<: Shift points to left by a given value\n"
-                      << ">: Shift points to right by a given value\n"
-                      << "s: save the current set of points to a given file\n"
-                      << "p: Print the current set of points on the screen\n"
+                      << "<: Shift points to left by a given value.\n"
+                      << ">: Shift points to right by a given value.\n"
+                      << "s: Save the current set of points to a given file\n"
+                      << "p: Print current set of points on screen.\n"
                       << "h: Print this message\n"
                       << "q: Quit\n";
             break;
