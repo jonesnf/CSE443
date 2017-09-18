@@ -7,6 +7,7 @@
 
 #include "Chart.h"
 #include <algorithm>
+#include <vector>
 
 Chart::Chart() : pointList{} {    
 }
@@ -85,14 +86,38 @@ Chart Chart::operator/(const Point& scale) const {
 
 Chart Chart::operator>>(int value) const {
     Chart newC = *this;
-    for (; value > 0 ; --value) 
-        newC.pointList.insert(newC.pointList.begin(), Point(0, 0));
+    for (; value > 0 ; --value) newC.pointList.insert(newC.pointList.begin(),
+                                                                   Point(0, 0));
     return newC;
 }
 
 Chart Chart::operator<<(int value) const {
     Chart newC = *this;
-    for (; value > 0 ; --value) 
-        newC.pointList.erase(newC.pointList.begin());
+    for (; value > 0 ; --value) newC.pointList.erase(newC.pointList.begin());
     return newC;
+}
+
+//  Fix this at some point.  Way too inefficient
+void Chart::analyze(std::ostream& os, const int scale) const {
+    Chart temp;
+    std::copy_if(this->pointList.begin(), this->pointList.end(),
+                 std::back_inserter(temp.pointList), 
+                 [&temp](const Point& p){return !(temp.contains(p));});
+    
+    std::vector<int> quadFreq(4, 0);
+    std::vector<str> quad = {"I: ", "II: ", "III: ", "IV: "};
+    for ( auto& m : temp.pointList ) {
+        quadFreq[m.getQuadrant() - 1]++;
+    }
+    size_t i = 0;
+    int j = 0;
+    for (; i < quadFreq.size(); ++i) {
+        std::cout << quad[i];
+        for (; j < (quadFreq[i] * scale) / *std::max_element(quadFreq.begin(),
+                quadFreq.end()); j++) {
+            std::cout << "*";
+        }
+        j = 0;
+        std::cout << std::endl;
+    }
 }

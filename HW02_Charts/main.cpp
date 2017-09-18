@@ -6,8 +6,9 @@
 
 // A simple main method to run ChartMaker
 int main() {
-    //  ChartMaker cm;
-    //  return cm.run();
+    ChartMaker cm;
+    return cm.run();
+    /*
     Chart c("small_points1.txt");
     Chart c2;
     std::cout << "Chart1: " << c;
@@ -36,5 +37,7 @@ int main() {
     c6 = c5 << 5;
     std::cout << "L-shifted chart: " << c6;
     
-    return 0;
+    c6.analyze(std::cout, 2); 
+     * */
+    // return 0;
 }

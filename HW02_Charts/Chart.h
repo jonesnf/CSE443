@@ -8,6 +8,7 @@
 #ifndef CHART_H
 #define CHART_H
 
+#include <math.h>
 #include <vector>
 #include <iostream>
 #include <fstream>
