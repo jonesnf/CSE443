@@ -43,18 +43,21 @@ Matrix blockMultiply(const Matrix& matrix1, const Matrix& matrix2,
     size_t size = matrix1.size(), colSize = matrix1[0].size();
     Matrix mat(size, std::vector<Val>(size));
     for (size_t i = 0; i < size; 
-            i += (i + blockSize > size) ? (size % blockSize) - 1 : blockSize) {
-     for (size_t j = 0; j < colSize; 
-       j += (j + blockSize > colSize) ? (colSize % blockSize) - 1 : blockSize) {
+            i += (i + blockSize > size) ? (size % blockSize) : blockSize) {
+     for (size_t j = 0; j < size; 
+       j += (j + blockSize > size) ? (size % blockSize) : blockSize) {
+      for ( size_t k = 0; k < colSize; 
+         k += (k + blockSize > colSize) ? (colSize % blockSize) : blockSize ) {
        for (size_t ii = i; ii < std::min(i + blockSize, size); ++ii) {
          for (size_t jj = j; jj < std::min(j + blockSize, size); ++jj) {
             Val sum = 0;
-           for (size_t kk = j; kk < std::min(j + blockSize, colSize); ++kk) {
+           for (size_t kk = k; kk < std::min(k + blockSize, colSize); ++kk) {
                       sum += matrix1[ii][kk] * matrix2[kk][jj];
                      }
                     mat[ii][jj] += sum;
                 }
             }
+          }
         }
     }
     return mat;
