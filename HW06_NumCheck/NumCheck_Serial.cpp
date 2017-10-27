@@ -7,7 +7,6 @@
 
 #include <omp.h>
 #include <cstdlib>
-#include <cmath>
 #include <algorithm>
 #include <iostream>
 #include <vector>
@@ -20,16 +19,14 @@ bool isPrime(size_t num_1) {
     else if (num_1 <= 3)
         return true;  
     else if (num_1 % 2 == 0 || num_1 % 3 == 0)
-        return false;
-    bool prime = true;
-    size_t end = std::sqrt(num_1) + 1;
-#pragma omp parallel for 
-    for (size_t i = 5; i <= end; i+=6) {
-        if (!prime) continue;  // essentially a break
+        return false;  
+    size_t i = 5;
+    while ( i * i <= num_1 ) {
         if (num_1 % i == 0 || num_1 % (i+2) == 0)
-            prime = false;
+            return false;
+        i+=6;
     }
-    return prime;
+    return true;
 }
 
 bool isPrimeFact(size_t num_1) {
@@ -37,19 +34,15 @@ bool isPrimeFact(size_t num_1) {
         return false;
     if (num_1 == 4)
         return true;
-    bool fact = false;
-    size_t end = std::sqrt(num_1) + 1;
-#pragma omp parallel for
-    for (size_t i = 2; i <= end; i++) {
-        if (fact) continue;
+    for (size_t i = 2; i * i <= num_1; i++) {
         if (isPrime(i) && num_1 % i == 0) {
             for (size_t j = 3; (i*j) <= num_1; j+=2) {
                 if (i*j == num_1 && isPrime(j)) 
-                    fact = true; 
+                    return true; 
             }
         }
     }
-    return fact;
+    return false;
 }
 
 bool isPalindrome(size_t num_1) {
@@ -58,29 +51,21 @@ bool isPalindrome(size_t num_1) {
     if (digits == 1) return false;
     std::vector<size_t> tmpVec(digits);
     for (size_t i = 0; i < digits; i++) {tmpVec[i] = num_1 % Idx; num_1 /= 10;}
-    --digits;
-    bool found = false;
-#pragma omp parallel for
-    for (size_t j = 0; j < digits; j++) {
-        if (tmpVec[j] != tmpVec[digits] || found) continue; 
-        if (j == digits || j == digits - 1) found = true; 
-        digits--;
+    size_t j = 0; --digits;
+    for (; tmpVec[j] == tmpVec[digits]; j++, digits--) {
+        if (j == digits || j == digits - 1) return true; 
     }
-    return found;
+    return false;
 }
 
 bool isPropFactorial(size_t num_1) {
-    bool found = false;
-    // size_t inc = 1, tmp2 = 1, tmp = 1, j = 1;
-    size_t sum = 1;
-#pragma omp parallel for reduction(*:sum)
-        for (size_t i = 1; i <= num_1; i++) {
-            if (sum == num_1)
-                found = true;
-            if (found || sum > num_1) continue;
-            sum *= i;
-        }
-    return found;
+    size_t i = 1, tmp = 1;
+    while ( i <= num_1 ) {
+        if (i == num_1)
+            return true;
+        i*=++tmp;
+    }
+    return false;
 }
 
 /*
