@@ -23,7 +23,7 @@ bool isPrime(size_t num_1) {
         return false;
     bool prime = true;
     size_t end = std::sqrt(num_1) + 1;
-#pragma omp parallel for 
+#pragma omp parallel for shared(prime)
     for (size_t i = 5; i <= end; i+=6) {
         if (!prime) continue;  // essentially a break
         if (num_1 % i == 0 || num_1 % (i+2) == 0)
@@ -39,7 +39,7 @@ bool isPrimeFact(size_t num_1) {
         return true;
     bool fact = false;
     size_t end = std::sqrt(num_1) + 1;
-#pragma omp parallel for
+#pragma omp parallel for shared(fact) schedule(static, 1)
     for (size_t i = 2; i <= end; i++) {
         if (fact) continue;
         if (isPrime(i) && num_1 % i == 0) {
@@ -60,11 +60,12 @@ bool isPalindrome(size_t num_1) {
     for (size_t i = 0; i < digits; i++) {tmpVec[i] = num_1 % Idx; num_1 /= 10;}
     --digits;
     bool found = false;
-#pragma omp parallel for
-    for (size_t j = 0; j < digits; j++) {
-        if (tmpVec[j] != tmpVec[digits] || found) continue; 
+#pragma omp parallel for shared(found)
+    for (size_t j = omp_get_thread_num(); j < digits; j++) {
+        if (tmpVec[j] != tmpVec[digits - omp_get_thread_num()] || found) 
+            continue; 
         if (j == digits || j == digits - 1) found = true; 
-        digits--;
+        digits-= omp_get_thread_num();
     }
     return found;
 }
@@ -73,7 +74,7 @@ bool isPropFactorial(size_t num_1) {
     bool found = false;
     // size_t inc = 1, tmp2 = 1, tmp = 1, j = 1;
     size_t sum = 1;
-#pragma omp parallel for reduction(*:sum)
+#pragma omp parallel for shared(found) reduction(*:sum)
         for (size_t i = 1; i <= num_1; i++) {
             if (sum == num_1)
                 found = true;
