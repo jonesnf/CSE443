@@ -27,6 +27,8 @@ public:
     virtual ~PNGHelper(){};
     int getNetMatch();
     bool isNetGood(const PNGHelper& mask);
+    bool alrdyFnd(const int, const int, const PNGHelper&);
+    void sortMatches();
     PNG img;
     std::vector<unsigned char> buff; 
     int match, mismatch, netmatch, height, width, numPixs, perPixMatch;

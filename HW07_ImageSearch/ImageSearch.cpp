@@ -1,9 +1,17 @@
 /* 
+ * Copyright (C) 2017 jonesnf@miamioh.edu
  * File:   main.cpp
  * Author: Nate Jones
  *
+ * Description:
+ *      This file contains functions that are necessary to compute information
+ * about the image itself, such as: number of black pixels, if a pixel is a 
+ * background pixel, and adding a pixel color to average.  The PNGHelper class
+ * contains functions for managing the aspects about the images, such as: image
+ * information, net matches, matches/mismatches, and list managing for 
+ * averages/matches.
+ * 
  * Created on November 5, 2017, 7:41 PM
- * Copyright (C) 2017 jonesnf@miamioh.edu
  */
 #include <stdlib.h>
 #include <math.h>
@@ -68,7 +76,6 @@ bool isMatch(int index, PNGHelper& src) {
     return true;
 }
 
-// TODO(jonesnf): need to check logic of incrementing (mis)match vars
 int checkMatch(PNGHelper& src, PNGHelper& mask, int rend, int cend) {
     int index = 0, m_row = 0, m_col = 0;
     for (int row = 0; row < rend; row++) {
@@ -83,7 +90,7 @@ int checkMatch(PNGHelper& src, PNGHelper& mask, int rend, int cend) {
                         (!isMatch(index, src)) ? src.match++ : src.mismatch++; }
                 }                    
             }
-            if (src.isNetGood(mask)) { 
+            if (src.isNetGood(mask) && !src.alrdyFnd(m_row, m_col, mask)) { 
                 topLeft tl(m_row, m_col); src.matches.push_back(tl); }
         }
     }
