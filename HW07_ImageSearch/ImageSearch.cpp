@@ -26,6 +26,28 @@
 // Used to store top left index of matched region.
 using topLeft = std::pair<int, int>;
 
+void drawBox(PNG& src, PNGHelper& mask, int row, int col) {
+    //  Drawing horizontal lines (both sides)
+    for (int i = 0; (i < mask.width); i++) {
+        src.setRed(row, col + i);
+        src.setRed(row + mask.height - 1, col + i);
+    }
+    //  Drawing vertical lines (both sides)
+    for (int i = 0; (i < mask.height); i++) {
+        src.setRed(row + i, col);
+        src.setRed(row + i, col + mask.width - 1);
+    }
+}
+
+void printMatches(PNGHelper& src, PNGHelper& mask) {
+    for ( auto& a : src.matches ) {
+        std::cout << "sub-image matched at: " << a.first << ", " << a.second
+                  << ", " << a.first + mask.height 
+                  << ", " << a.second + mask.width; 
+        drawBox(src.img, mask, a.first, a.second);
+    }
+}
+
 int getPixelIndex(int row, int col, int width) {
     int index = 0; 
     index = (4*width)*row + (4 * col);
@@ -91,11 +113,10 @@ int checkMatch(PNGHelper& src, PNGHelper& mask, int rend, int cend) {
                 }                    
             }
             if (src.isNetGood(mask) && !src.alrdyFnd(m_row, m_col, mask)) { 
-                topLeft tl(m_row, m_col); src.matches.push_back(tl); }
+                topLeft tl(m_row - mask.height, m_col - mask.width);
+                src.matches.push_back(tl); }
         }
     }
-    std::cout << "Matches: " << src.match << std::endl;
-    std::cout << "Matches Size: " << src.matches.size() << std::endl;
     return src.getNetMatch();
 }
 
@@ -130,6 +151,9 @@ int main(int argc, char** argv) {
     showBckgrndPix(maskHelp);
     calcAvgBg(srcHelp, maskHelp);
     std::cout << "Netmatches: " << srcHelp.netmatch << std::endl;
+    srcHelp.sortMatches();
+    printMatches(srcHelp, maskHelp);
+    srcHelp.img.write("myoutput.png");
     return 0;
 }
 
