@@ -10,12 +10,13 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <utility>
 #include "PNG.h"
 #include "Assert.h"
 #include "PNGHelper.h"
 
-using PixVec = std::vector<unsigned char>;
-using AvgVec = std::vector<int>;
+// Used to store top left index of matched region.
+using topLeft = std::pair<int, int>;
 
 int getPixelIndex(int row, int col, int width) {
     int index = 0; 
@@ -69,11 +70,12 @@ bool isMatch(int index, PNGHelper& src) {
 
 // TODO(jonesnf): need to check logic of incrementing (mis)match vars
 int checkMatch(PNGHelper& src, PNGHelper& mask, int rend, int cend) {
-    int index = 0;
+    int index = 0, m_row = 0, m_col = 0;
     for (int row = 0; row < rend; row++) {
         for (int col = 0; col < cend; col++) {
-            for (int m_row = row; m_row < mask.height+row; m_row++) {
-                for (int m_col = col; m_col < mask.width+col; m_col++) {
+            src.netmatch = 0;
+            for (m_row = row; m_row < mask.height+row; m_row++) {
+                for (m_col = col; m_col < mask.width+col; m_col++) {
                     index = getPixelIndex(m_row+row, m_col+col, src.width);
                     if (isBckgrndPix(mask, m_row - row, m_col - col)) {
                       (isMatch(index, src)) ? src.match++ : src.mismatch++; 
@@ -81,11 +83,13 @@ int checkMatch(PNGHelper& src, PNGHelper& mask, int rend, int cend) {
                         (!isMatch(index, src)) ? src.match++ : src.mismatch++; }
                 }                    
             }
+            if (src.isNetGood(mask)) { 
+                topLeft tl(m_row, m_col); src.matches.push_back(tl); }
         }
     }
     std::cout << "Matches: " << src.match << std::endl;
-    std::cout << "Mismatches: " << src.mismatch << std::endl;
-    return src.netmatch = abs(src.match - src.mismatch);
+    std::cout << "Matches Size: " << src.matches.size() << std::endl;
+    return src.getNetMatch();
 }
 
 

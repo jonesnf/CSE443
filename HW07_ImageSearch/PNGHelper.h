@@ -9,9 +9,14 @@
 #ifndef PNGHELPER_H
 #define PNGHELPER_H
 
+#include <math.h>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <utility>
 #include "PNG.h"
+
+using topLeft = std::pair<int, int>;
 
 class PNGHelper {
 public: 
@@ -20,10 +25,13 @@ public:
     PNGHelper(const std::string& filename);
     PNGHelper(const PNGHelper& png_h);
     virtual ~PNGHelper(){};
+    int getNetMatch();
+    bool isNetGood(const PNGHelper& mask);
     PNG img;
     std::vector<unsigned char> buff; 
-    int match, mismatch, netmatch, height, width, numPixs;
+    int match, mismatch, netmatch, height, width, numPixs, perPixMatch;
     std::vector<int> avg;
+    std::vector<topLeft> matches;
 private: 
 };
 
