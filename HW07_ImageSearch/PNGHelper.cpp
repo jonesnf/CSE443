@@ -42,6 +42,11 @@ PNGHelper::PNGHelper(const std::string& filename) {
  */
 int PNGHelper::getNetMatch() { return netmatch = abs(match - mismatch); }
 
+/**
+ * Reset the values computed in net match
+ */
+void PNGHelper::resetNetMatch() { netmatch = 0; match = 0; mismatch = 0; }
+
 
 /**
  * Why does this only work with getNetMatch() ???? 
@@ -49,6 +54,9 @@ int PNGHelper::getNetMatch() { return netmatch = abs(match - mismatch); }
  * @return boolean
  */
 bool PNGHelper::isNetGood(const PNGHelper& mask) { 
+    // std::cout << "isNetGood NetMatch: " << this->getNetMatch() << std::endl;
+    /* std::cout << mask.width * mask.height * (mask.perPixMatch / 100) 
+              << std::endl;*/
     return this->getNetMatch() > (mask.width * mask.height * \
                                     (mask.perPixMatch / 100));
 }

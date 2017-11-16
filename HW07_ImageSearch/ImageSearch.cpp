@@ -30,12 +30,12 @@ void drawBox(PNG& src, PNGHelper& mask, int row, int col) {
     //  Drawing horizontal lines (both sides)
     for (int i = 0; (i < mask.width); i++) {
         src.setRed(row, col + i);
-        src.setRed(row + mask.height - 1, col + i);
+        src.setRed(row + mask.height, col + i);
     }
     //  Drawing vertical lines (both sides)
     for (int i = 0; (i < mask.height); i++) {
         src.setRed(row + i, col);
-        src.setRed(row + i, col + mask.width - 1);
+        src.setRed(row + i, col + mask.width);
     }
 }
 
@@ -43,9 +43,9 @@ void printMatches(PNGHelper& src, PNGHelper& mask) {
     int count = 0;
     for ( auto& a : src.matches ) {
         count++;
-        std::cout << "sub-image matched at: " << a.first + 1 
+        /*std::cout << "sub-image matched at: " << a.first + 1 
                   << ", " << a.second+1 << ", " << a.first + mask.height 
-                  << ", " << a.second + mask.width << std::endl; 
+                  << ", " << a.second + mask.width << std::endl;*/ 
         drawBox(src.img, mask, a.first + 1, a.second + 1);
     }
     std::cout << "Num of matches: " << count << std::endl;
@@ -57,10 +57,10 @@ int getPixelIndex(int row, int col, int width) {
     return index;
 }
 
-int isBlackPix(const PNGHelper& mask, int index) {
-    int result = (static_cast<int>(mask.buff[index]) \
-                + static_cast<int>(mask.buff[index+1]) \
-                + static_cast<int>(mask.buff[index+2])) / 3;
+bool isBlackPix(const PNGHelper& mask, int index) {
+    int result = static_cast<int>(mask.buff[index])   == 0 &&
+                 static_cast<int>(mask.buff[index+1]) == 0 &&
+                 static_cast<int>(mask.buff[index+2]) == 0;
     return result;
 }
 
@@ -70,7 +70,7 @@ void showBckgrndPix(PNGHelper& img) {
     for (int row = 0; row < img.height; row++) {
         for (int col = 0; col < img.width; col++) {
             index = getPixelIndex(row, col, img.width);
-            if (isBlackPix(img, index) == 0)
+            if (isBlackPix(img, index))
                 blackPix++;
         }
     }
@@ -81,7 +81,7 @@ void showBckgrndPix(PNGHelper& img) {
 
 bool isBckgrndPix(PNGHelper& mask, int row, int col) {
     int index = getPixelIndex(row, col, mask.width);
-    if (isBlackPix(mask, index) == 0) 
+    if (isBlackPix(mask, index)) 
         return true;
     return false;
 }
@@ -94,44 +94,40 @@ void addPixel2Avg(PNGHelper& src, int index) {
 // TODO(jonesnf): have to pass through tolerance, rn default is 32
 bool isMatch(int index, PNGHelper& src) {
     for (size_t i = 0; i < src.avg.size()-1; i++) {
-        if (static_cast<int>(src.buff[index+i]) > (src.avg[i] - 32) && \
-            static_cast<int>(src.buff[index+i]) < (src.avg[i] + 32)   )
-                return true;
+        if (static_cast<int>(src.buff[index+i]) < (src.avg[i] - 32) || \
+            static_cast<int>(src.buff[index+i]) > (src.avg[i] + 32)   )
+                return false;
     }
-    return false;
+    return true;
 }
 
-int checkMatch(PNGHelper& src, PNGHelper& mask, int rend, int cend) {
-    int index = 0, m_row = 0, m_col = 0; bool gotOne = false; bool skip = false;
-    for (int row = 0; row < rend; (skip) ? row += mask.height : row++) {
-        skip = false;
-        for (int col = 0; col < cend; (gotOne) ? col += mask.width : col++) {
-            src.netmatch = 0; gotOne = false;
-            for (m_row = row; m_row < mask.height+row-1; m_row++) {
-                for (m_col = col; m_col < mask.width+col-1; m_col++) {
-                    index = getPixelIndex(m_row, m_col, src.width);
-                    if (isBckgrndPix(mask, m_row - row, m_col - col)) {
-                      (isMatch(index, src)) ? src.match++ : src.mismatch++; 
-                    } else { 
-                        (isMatch(index, src)) ? src.match++ : src.mismatch++; }
-                }                    
+bool checkMatch(PNGHelper& src, PNGHelper& mask, int row, int col) {
+    int index = 0, m_row = 0, m_col = 0;
+    for (m_row = row; m_row < mask.height+row; m_row++) {
+        for (m_col = col; m_col < mask.width+col; m_col++) {
+            index = getPixelIndex(m_row, m_col, src.width);
+            if (isBckgrndPix(mask, m_row - row, m_col - col)) {
+               (isMatch(index, src)) ? src.match++ : src.mismatch++; 
+            } else { 
+               (!isMatch(index, src)) ? src.match++ : src.mismatch++; 
             }
-            if (src.isNetGood(mask) && !src.alrdyFnd(m_row, m_col, mask)) { 
-                topLeft tl(m_row - mask.height, m_col - mask.width);
-                src.matches.push_back(tl); gotOne = true; skip = true; }
-        }
+        }                    
     }
-    return src.getNetMatch();
+    if (src.isNetGood(mask) && !src.alrdyFnd(m_row, m_col, mask)) { 
+        topLeft tl(m_row - mask.height, m_col - mask.width);
+        src.matches.push_back(tl); return true;}
+    // std::cout << src.match << "/" << src.mismatch << std::endl;
+    return false;
 }
 
 
 void calcAvgBg(PNGHelper& src, PNGHelper& mask) {
     int index = 0; int rowEnd = src.height - mask.height + 1;
-    int colEnd = src.width - mask.width + 1;
+    int colEnd = src.width - mask.width + 1; bool mtchFnd = false;
     for (int row = 0; row < rowEnd; row++) {
-        for (int col = 0; col < colEnd; col++) {
-            for (int m_row = row; m_row < mask.height + row-1; m_row++) {
-                for (int m_col = col; m_col < mask.width + col-1; m_col++) {
+        for (int col = 0; col < colEnd; (mtchFnd) ? col += mask.width : col++) {
+            for (int m_row = row; m_row < mask.height + row; m_row++) {
+                for (int m_col = col; m_col < mask.width + col; m_col++) {
                     if (isBckgrndPix(mask, m_row - row, m_col - col)) {
                         src.numPixs++;
                         //  Took out '+row' / '+col'
@@ -139,11 +135,12 @@ void calcAvgBg(PNGHelper& src, PNGHelper& mask) {
                         addPixel2Avg(src, index);
                     }
                 }                    
-            } for (size_t i = 0; i < src.avg.size(); i++) 
-                src.avg[i] /= src.numPixs;
+            } for (size_t i = 0; i < src.avg.size(); i++)
+                    src.avg[i] /= src.numPixs;
+            src.resetNetMatch(); src.numPixs = 0; 
+            mtchFnd = checkMatch(src, mask, row, col);
         }
-    }
-    src.netmatch = checkMatch(src, mask, rowEnd, colEnd);
+    }   
 }
 
 /*
@@ -154,9 +151,7 @@ int main(int argc, char** argv) {
     PNGHelper srcHelp("SmallTestImage.png"); 
     PNGHelper maskHelp("i_mask.png");
     showBckgrndPix(maskHelp);
-    std::cout << maskHelp.width << " / " <<srcHelp.width << std::endl;
     calcAvgBg(srcHelp, maskHelp);
-    std::cout << "Netmatches: " << srcHelp.netmatch << std::endl;
     srcHelp.sortMatches();
     printMatches(srcHelp, maskHelp);
     srcHelp.img.write("myoutput_SmallTest.png");

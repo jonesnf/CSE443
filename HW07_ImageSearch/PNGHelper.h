@@ -29,9 +29,11 @@ public:
     bool isNetGood(const PNGHelper& mask);
     bool alrdyFnd(const int, const int, const PNGHelper&);
     void sortMatches();
+    void resetNetMatch();
     PNG img;
     std::vector<unsigned char> buff; 
-    int match, mismatch, netmatch, height, width, numPixs, perPixMatch;
+    int match, mismatch, netmatch, height, width, numPixs;
+    double perPixMatch;
     std::vector<int> avg;
     std::vector<topLeft> matches;
 private: 
