@@ -30,12 +30,12 @@ void drawBox(PNG& src, PNGHelper& mask, int row, int col) {
     //  Drawing horizontal lines (both sides)
     for (int i = 0; (i < mask.width); i++) {
         src.setRed(row, col + i);
-        src.setRed(row + mask.height, col + i);
+        src.setRed(row + mask.height - 1, col + i);
     }
     //  Drawing vertical lines (both sides)
     for (int i = 0; (i < mask.height); i++) {
         src.setRed(row + i, col);
-        src.setRed(row + i, col + mask.width);
+        src.setRed(row + i, col + mask.width - 1);
     }
 }
 
@@ -43,10 +43,10 @@ void printMatches(PNGHelper& src, PNGHelper& mask) {
     int count = 0;
     for ( auto& a : src.matches ) {
         count++;
-        /*std::cout << "sub-image matched at: " << a.first + 1 
-                  << ", " << a.second+1 << ", " << a.first + mask.height 
-                  << ", " << a.second + mask.width << std::endl;*/ 
-        drawBox(src.img, mask, a.first + 1, a.second + 1);
+        std::cout << "sub-image matched at: " << a.first 
+                  << ", " << a.second << ", " << a.first + mask.height 
+                  << ", " << a.second + mask.width << std::endl; 
+        drawBox(src.img, mask, a.first, a.second);
     }
     std::cout << "Num of matches: " << count << std::endl;
 }
@@ -115,8 +115,8 @@ bool checkMatch(PNGHelper& src, PNGHelper& mask, int row, int col) {
     }
     if (src.isNetGood(mask) && !src.alrdyFnd(m_row, m_col, mask)) { 
         topLeft tl(m_row - mask.height, m_col - mask.width);
-        src.matches.push_back(tl); return true;}
-    // std::cout << src.match << "/" << src.mismatch << std::endl;
+        src.matches.push_back(tl); return true;
+    }
     return false;
 }
 
@@ -148,13 +148,13 @@ void calcAvgBg(PNGHelper& src, PNGHelper& mask) {
  */
 int main(int argc, char** argv) {
     std::cout << "Start" << std::endl;
-    PNGHelper srcHelp("SmallTestImage.png"); 
-    PNGHelper maskHelp("i_mask.png");
+    PNGHelper srcHelp("star.png"); 
+    PNGHelper maskHelp("star_mask.png");
     showBckgrndPix(maskHelp);
     calcAvgBg(srcHelp, maskHelp);
     srcHelp.sortMatches();
     printMatches(srcHelp, maskHelp);
-    srcHelp.img.write("myoutput_SmallTest.png");
+    srcHelp.img.write("myoutput_StarTest.png");
     return 0;
 }
 
