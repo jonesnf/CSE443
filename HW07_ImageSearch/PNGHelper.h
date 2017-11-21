@@ -33,7 +33,7 @@ public:
     PNG img;
     std::vector<unsigned char> buff; 
     int match, mismatch, netmatch, height, width, numPixs;
-    double perPixMatch;
+    double perPixMatch, tol;
     std::vector<int> avg;
     std::vector<topLeft> matches;
 private: 

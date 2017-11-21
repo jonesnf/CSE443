@@ -24,17 +24,19 @@ PNGHelper::PNGHelper() {
 PNGHelper::PNGHelper(const PNGHelper& png_h) : img(png_h.img), buff(png_h.buff),
         match(png_h.match), mismatch(png_h.mismatch), netmatch(png_h.netmatch),
         height(png_h.height), width(png_h.width), numPixs(png_h.numPixs),
-        perPixMatch(png_h.perPixMatch), avg(png_h.avg) {
+        perPixMatch(png_h.perPixMatch), tol(png_h.tol),
+        avg(png_h.avg) {
 }
 
 PNGHelper::PNGHelper(const std::string& filename) {
     img.load(filename);
     buff = img.getBuffer();
-    match = 0; mismatch = 0; netmatch = 0; perPixMatch = 75;  // default perPix
+    match = 0; mismatch = 0; netmatch = 0; perPixMatch = 75; tol = 32;
     height = img.getHeight(); width = img.getWidth();
     numPixs = 0;
     avg = {0, 0, 0, 0};
 }
+
 
 /**
  *  Returns net matches, which is equal to = matches - mismatches
@@ -78,6 +80,14 @@ bool PNGHelper::alrdyFnd(const int row, const int col, const PNGHelper& mask) {
     return result != std::end(matches);
 }
 
+/**
+ * Used to sort matches based on indices.  First it determines if the x 
+ * coordinates are equal, if they are then compare y coordinates, else just 
+ * compare x's. 
+ * @param ta (first set of indices)
+ * @param tb (second set of indices)
+ * @return true is first element is smaller than second
+ */
 bool customSort(topLeft& ta, topLeft& tb) { 
         if (ta.first == tb.first)
             return ta.second < tb.second;
