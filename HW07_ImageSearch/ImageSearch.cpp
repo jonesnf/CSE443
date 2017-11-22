@@ -106,23 +106,28 @@ bool isMatch(int index, PNGHelper& src) {
     return true;
 }
 
-bool checkMatch(PNGHelper& src, PNGHelper& mask, int row, int col) {
+bool checkMatch(PNGHelper& ogsrc, PNGHelper& thrdSrc, PNGHelper& thrdMsk, \
+        int row, int col) {
     int index = 0, m_row = 0, m_col = 0;
     // search through sub-image for matches
-    for (m_row = row; m_row < mask.height+row; m_row++) {
-        for (m_col = col; m_col < mask.width+col; m_col++) {
-            index = getPixelIndex(m_row, m_col, src.width);
-            if (isBckgrndPix(mask, m_row - row, m_col - col)) {
-               (isMatch(index, src)) ? src.match++ : src.mismatch++; 
+    for (m_row = row; m_row < thrdMsk.height+row; m_row++) {
+        for (m_col = col; m_col < thrdMsk.width+col; m_col++) {
+            index = getPixelIndex(m_row, m_col, thrdSrc.width);
+            if (isBckgrndPix(thrdMsk, m_row - row, m_col - col)) {
+              (isMatch(index, thrdSrc)) ? thrdSrc.match++ : thrdSrc.mismatch++; 
             } else { 
-               (!isMatch(index, src)) ? src.match++ : src.mismatch++; 
+            (!isMatch(index, thrdSrc)) ? thrdSrc.match++ : thrdSrc.mismatch++; 
             }
         }                    
     }
     // only add match if netmatch is sufficient and it's not already found
-    if (src.isNetGood(mask) && !src.alrdyFnd(m_row, m_col, mask)) { 
-        topLeft tl(m_row - mask.height, m_col - mask.width);
-        src.matches.push_back(tl); return true;
+  if (thrdSrc.isNetGood(thrdMsk) && !thrdSrc.alrdyFnd(m_row, m_col, thrdMsk)) { 
+        topLeft tl(m_row - thrdMsk.height, m_col - thrdMsk.width);
+#pragma omp critical
+        {
+            ogsrc.matches.push_back(tl); 
+        }
+        return true;
     }
     return false;
 }
@@ -131,23 +136,25 @@ bool checkMatch(PNGHelper& src, PNGHelper& mask, int row, int col) {
 void calcAvgBg(PNGHelper& src, PNGHelper& mask) {
     int index = 0; int rowEnd = src.height - mask.height + 1;
     int colEnd = src.width - mask.width + 1; bool mtchFnd = false;
+    PNGHelper thrdSrc = src; PNGHelper thrdMsk = mask;
     // search through image.  Increment col by width if match previously found
+#pragma omp parallel for firstprivate(thrdSrc, thrdMsk) shared(src)
     for (int row = 0; row < rowEnd; row++) {
-        for (int col = 0; col < colEnd; (mtchFnd) ? col += mask.width : col++) {
-            for (int m_row = row; m_row < mask.height + row; m_row++) {
-                for (int m_col = col; m_col < mask.width + col; m_col++) {
-                    if (isBckgrndPix(mask, m_row - row, m_col - col)) {
-                        src.numPixs++;
-                        index = getPixelIndex(m_row, m_col, src.width);
-                        addPixel2Avg(src, index);
+     for (int col = 0; col < colEnd; (mtchFnd) ? col += thrdMsk.width : col++) {
+            for (int m_row = row; m_row < thrdMsk.height + row; m_row++) {
+                for (int m_col = col; m_col < thrdMsk.width + col; m_col++) {
+                    if (isBckgrndPix(thrdMsk, m_row - row, m_col - col)) {
+                        thrdSrc.numPixs++;
+                        index = getPixelIndex(m_row, m_col, thrdSrc.width);
+                        addPixel2Avg(thrdSrc, index);
                     }
                 }                    
-            } for (size_t i = 0; i < src.avg.size(); i++)
-                    src.avg[i] /= src.numPixs;
-            src.resetNetMatch(); src.numPixs = 0; 
-            mtchFnd = checkMatch(src, mask, row, col);
+            } for (size_t i = 0; i < thrdSrc.avg.size(); i++)
+                    thrdSrc.avg[i] /= thrdSrc.numPixs;
+            thrdSrc.resetNetMatch(); thrdSrc.numPixs = 0; 
+            mtchFnd = checkMatch(src, thrdSrc, thrdMsk, row, col);
         }
-    }   
+    }  
 }
 
 /*
