@@ -56,11 +56,8 @@ void PNGHelper::resetNetMatch() { netmatch = 0; match = 0; mismatch = 0; }
  * @return boolean
  */
 bool PNGHelper::isNetGood(const PNGHelper& mask) { 
-    // std::cout << "isNetGood NetMatch: " << this->getNetMatch() << std::endl;
-    /* std::cout << mask.width * mask.height * (mask.perPixMatch / 100) 
-              << std::endl;*/
     return this->getNetMatch() > (mask.width * mask.height * \
-                                    (mask.perPixMatch / 100));
+                                    (this->perPixMatch / 100));
 }
 
 /**
@@ -72,12 +69,14 @@ bool PNGHelper::isNetGood(const PNGHelper& mask) {
  */
 bool PNGHelper::alrdyFnd(const int row, const int col, const PNGHelper& mask) {
     topLeft tl(row, col);
-    auto result = std::find_if(matches.begin(), matches.end(), [tl, mask] \
-        (const topLeft& tmp) { 
-        return (tl.first >= tmp.first && tl.first <= tmp.first + mask.height)
-           && (tl.second >= tmp.second && tl.second <= tmp.second + mask.width);
-        });
-    return result != std::end(matches);
+    auto result = std::find_if(std::begin(this->matches), \
+            std::end(this->matches), [tl, mask] (const topLeft& tmp) { 
+      return ((tl.first >= tmp.first && tl.first <= tmp.first + mask.height) 
+        ^ (tl.first < tmp.first && tl.first + mask.height <= tmp.first))
+        && ((tl.second >= tmp.second && tl.second <= tmp.second + mask.width)\
+        ^ (tl.second + mask.width >= tmp.second && tl.second < tmp.second));
+      });
+    return result != std::end(this->matches);
 }
 
 /**

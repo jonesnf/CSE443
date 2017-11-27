@@ -99,8 +99,8 @@ void addPixel2Avg(PNGHelper& src, int index) {
 bool isMatch(int index, PNGHelper& src) {
     // Determine if this pixel matches avg background w/ tolerance
     for (size_t i = 0; i < src.avg.size()-1; i++) {
-        if (static_cast<int>(src.buff[index+i]) < (src.avg[i] - src.tol)
-            || static_cast<int>(src.buff[index+i]) > (src.avg[i] + src.tol))
+        if (static_cast<int>(src.buff[index+i]) <= (src.avg[i] - src.tol)
+            || static_cast<int>(src.buff[index+i]) >= (src.avg[i] + src.tol))
             return false;
     }
     return true;
@@ -121,10 +121,11 @@ bool checkMatch(PNGHelper& ogsrc, PNGHelper& thrdSrc, PNGHelper& thrdMsk, \
         }                    
     }
     // only add match if netmatch is sufficient and it's not already found
-  if (thrdSrc.isNetGood(thrdMsk) && !thrdSrc.alrdyFnd(m_row, m_col, thrdMsk)) { 
+    if (thrdSrc.isNetGood(thrdMsk) && !ogsrc.alrdyFnd(m_row - thrdMsk.height, \
+                                            m_col - thrdMsk.width, thrdMsk)) {
         topLeft tl(m_row - thrdMsk.height, m_col - thrdMsk.width);
 #pragma omp critical
-        {
+        {                
             ogsrc.matches.push_back(tl); 
         }
         return true;
@@ -152,9 +153,9 @@ void calcAvgBg(PNGHelper& src, PNGHelper& mask) {
             } for (size_t i = 0; i < thrdSrc.avg.size(); i++)
                     thrdSrc.avg[i] /= thrdSrc.numPixs;
             thrdSrc.resetNetMatch(); thrdSrc.numPixs = 0; 
-            mtchFnd = checkMatch(src, thrdSrc, thrdMsk, row, col);
-        }
-    }  
+            mtchFnd = checkMatch(src, thrdSrc, thrdMsk, row, col); 
+        }  
+    }
 }
 
 /*
